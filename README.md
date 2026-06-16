@@ -1,49 +1,49 @@
 # my_lazyvim_settings
 
-Personal [LazyVim](https://github.com/LazyVim/LazyVim) settings.
+個人使用的 [LazyVim](https://github.com/LazyVim/LazyVim) 設定。
 
-## Custom Keymaps
+## 自訂快捷鍵
 
-`<leader>` is the LazyVim leader key, normally `<Space>`.
+`<leader>` 是 LazyVim 的 leader key，通常是 `<Space>`。
 
-| Key | Mode | Action |
+| 快捷鍵 | 模式 | 功能 |
 | --- | --- | --- |
-| `<leader>cb` | Normal | Preview C-Mera output in a side window |
-| `<leader>cp` | Normal | Preview C-Mera output in a side window |
-| `<leader>cw` | Normal | Write C-Mera output next to the source file |
-| `<leader>co` | Normal | Write C-Mera output and open the generated file |
-| `<leader>cgr` | Normal | Run `codegen` on the current file |
-| `<leader>cgd` | Normal | Run `codegen --dry-run` on the current file |
-| `<leader>cgl` | Normal | List available `codegen` rollback backups |
-| `<leader>cgR` | Normal | Roll back the current file with `codegen rollback` |
-| `<leader>gg` | Normal | Open LazyGit |
-| `<C-Up>` | Normal | Increase window height |
-| `<C-Down>` | Normal | Decrease window height |
-| `<C-Left>` | Normal | Decrease window width |
-| `<C-Right>` | Normal | Increase window width |
-| `jk` | Insert | Exit insert mode |
-| `<C-s>` | Normal / Insert / Visual | Save current file |
+| `<leader>cb` | Normal | 預覽 C-Mera 輸出到側邊視窗 |
+| `<leader>cp` | Normal | 預覽 C-Mera 輸出到側邊視窗 |
+| `<leader>cw` | Normal | 將 C-Mera 輸出寫到原始檔旁邊 |
+| `<leader>co` | Normal | 寫出 C-Mera 輸出並開啟產生的檔案 |
+| `<leader>cgr` | Normal | 對目前檔案執行 `codegen` |
+| `<leader>cgd` | Normal | 對目前檔案執行 `codegen --dry-run` |
+| `<leader>cgl` | Normal | 列出可用的 `codegen` rollback 備份 |
+| `<leader>cgR` | Normal | 使用 `codegen rollback` 還原目前檔案 |
+| `<leader>gg` | Normal | 開啟 LazyGit |
+| `<C-Up>` | Normal | 增加視窗高度 |
+| `<C-Down>` | Normal | 減少視窗高度 |
+| `<C-Left>` | Normal | 減少視窗寬度 |
+| `<C-Right>` | Normal | 增加視窗寬度 |
+| `jk` | Insert | 離開 insert mode |
+| `<C-s>` | Normal / Insert / Visual | 儲存目前檔案 |
 
-## Custom Commands
+## 自訂命令
 
 ### C-Mera
 
-| Command | Purpose |
+| 命令 | 功能 |
 | --- | --- |
-| `:CmeraPreview [generator]` | Run `cm` and preview stdout |
-| `:CmeraWrite [generator]` | Run `cm -o` and write the generated output file |
-| `:CmeraOpen [generator]` | Write output and open the generated file |
-| `:CmeraBuild [generator]` | Backward-compatible alias for `:CmeraPreview` |
+| `:CmeraPreview [generator]` | 執行 `cm` 並預覽 stdout |
+| `:CmeraWrite [generator]` | 執行 `cm -o` 並寫出產生的檔案 |
+| `:CmeraOpen [generator]` | 寫出輸出並開啟產生的檔案 |
+| `:CmeraBuild [generator]` | 相容舊設定的別名，等同 `:CmeraPreview` |
 
-Supported generators include `c`, `c++`, `cxx`, `cuda`, `glsl`, `ocl`, and `opencl`.
+支援的 generator 包含 `c`、`c++`、`cxx`、`cuda`、`glsl`、`ocl`、`opencl`。
 
 ### codegen
 
-| Command | Purpose |
+| 命令 | 功能 |
 | --- | --- |
-| `:CodegenRun [path...]` | Run codegen on paths, or the current file when no path is given |
-| `:CodegenDryRun [path...]` | Run codegen in dry-run mode |
-| `:CodegenRollbackList [path...]` | List rollback backups |
-| `:CodegenRollback [path...]` | Restore from a codegen backup |
+| `:CodegenRun [path...]` | 對指定路徑執行 codegen；未指定時使用目前檔案 |
+| `:CodegenDryRun [path...]` | 以 dry-run 模式執行 codegen |
+| `:CodegenRollbackList [path...]` | 列出 rollback 備份 |
+| `:CodegenRollback [path...]` | 從 codegen 備份還原 |
 
-The codegen integration uses `~/repo/codegen/src` with `~/repo/codegen/.venv/bin/python` when available, so the `codegen` console script does not need to be installed globally.
+codegen 整合會優先使用 `~/repo/codegen/src` 搭配 `~/repo/codegen/.venv/bin/python`，因此不需要把 `codegen` console script 安裝到全域環境。
