@@ -117,11 +117,8 @@ local function current_file()
   return buf, vim.fn.fnamemodify(file, ":.")
 end
 
-local function run_cm(generator, file, out, callback)
+local function run_cm(generator, file, callback)
   local cmd = { "cm", generator_arg(generator), file }
-  if out then
-    vim.list_extend(cmd, { "-o", out })
-  end
 
   vim.system(cmd, { text = true }, function(obj)
     vim.schedule(function()
@@ -134,6 +131,26 @@ local function run_cm(generator, file, out, callback)
       callback(obj)
     end)
   end)
+end
+
+local function write_output(out, content)
+  if content == "" then
+    notify("C-Mera 執行成功但沒有 stdout 輸出，未寫入空檔。", "warn")
+    return false
+  end
+
+  local lines = vim.split(content:gsub("\r", ""), "\n")
+  if lines[#lines] == "" then
+    table.remove(lines)
+  end
+
+  local ok, err = pcall(vim.fn.writefile, lines, out)
+  if not ok then
+    notify("C-Mera 寫檔失敗: " .. err, "error")
+    return false
+  end
+
+  return true
 end
 
 local function preview_output(generator, content)
@@ -175,7 +192,7 @@ function M.preview(opts)
   end
 
   local generator = opts and opts.args ~= "" and opts.args or detect_lang(buf)
-  run_cm(generator, file, nil, function(obj)
+  run_cm(generator, file, function(obj)
     preview_output(generator, obj.stdout or "")
   end)
 end
@@ -190,8 +207,10 @@ function M.write(opts)
   local meta = output_meta(generator)
   local out = vim.fn.fnamemodify(file, ":r") .. "." .. meta.extension
 
-  run_cm(generator, file, out, function()
-    notify("C-Mera 已寫出: " .. out, "info")
+  run_cm(generator, file, function(obj)
+    if write_output(out, obj.stdout or "") then
+      notify("C-Mera 已寫出: " .. out, "info")
+    end
   end)
 end
 
@@ -205,9 +224,11 @@ function M.open_output(opts)
   local meta = output_meta(generator)
   local out = vim.fn.fnamemodify(file, ":r") .. "." .. meta.extension
 
-  run_cm(generator, file, out, function()
-    vim.cmd.edit(vim.fn.fnameescape(out))
-    vim.bo.filetype = meta.filetype
+  run_cm(generator, file, function(obj)
+    if write_output(out, obj.stdout or "") then
+      vim.cmd.edit(vim.fn.fnameescape(out))
+      vim.bo.filetype = meta.filetype
+    end
   end)
 end
 

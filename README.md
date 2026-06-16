@@ -9,7 +9,6 @@
 | 快捷鍵 | 模式 | 功能 |
 | --- | --- | --- |
 | `<leader>cb` | Normal | 預覽 C-Mera 輸出到側邊視窗 |
-| `<leader>cp` | Normal | 預覽 C-Mera 輸出到側邊視窗 |
 | `<leader>cw` | Normal | 將 C-Mera 輸出寫到原始檔旁邊 |
 | `<leader>co` | Normal | 寫出 C-Mera 輸出並開啟產生的檔案 |
 | `<leader>cgr` | Normal | 對目前檔案執行 `codegen` |
@@ -31,11 +30,11 @@
 | 命令 | 功能 |
 | --- | --- |
 | `:CmeraPreview [generator]` | 執行 `cm` 並預覽 stdout |
-| `:CmeraWrite [generator]` | 執行 `cm -o` 並寫出產生的檔案 |
+| `:CmeraWrite [generator]` | 執行 `cm` 並將 stdout 寫成產生檔 |
 | `:CmeraOpen [generator]` | 寫出輸出並開啟產生的檔案 |
-| `:CmeraBuild [generator]` | 相容舊設定的別名，等同 `:CmeraPreview` |
 
 支援的 generator 包含 `c`、`c++`、`cxx`、`cuda`、`glsl`、`ocl`、`opencl`。
+`:CmeraBuild [generator]` 保留為相容舊設定的別名，等同 `:CmeraPreview [generator]`。
 
 ### codegen
 

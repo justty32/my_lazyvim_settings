@@ -4,7 +4,6 @@
 require("config.cmera")
 require("config.codegen")
 vim.keymap.set("n", "<leader>cb", "<cmd>CmeraPreview<cr>", { desc = "C-Mera Preview" })
-vim.keymap.set("n", "<leader>cp", "<cmd>CmeraPreview<cr>", { desc = "C-Mera Preview" })
 vim.keymap.set("n", "<leader>cw", "<cmd>CmeraWrite<cr>", { desc = "C-Mera Write Output" })
 vim.keymap.set("n", "<leader>co", "<cmd>CmeraOpen<cr>", { desc = "C-Mera Write and Open Output" })
 vim.keymap.set("n", "<leader>cgr", "<cmd>CodegenRun<cr>", { desc = "Codegen Run" })
