@@ -38,10 +38,5 @@ return {
   },
 
   -- 5. 載入自訂建置邏輯
-  {
-    "nvim-lua/plenary.nvim",
-    config = function()
-      require("config.cmera")
-    end,
-  },
+  { "nvim-lua/plenary.nvim" },
 }
