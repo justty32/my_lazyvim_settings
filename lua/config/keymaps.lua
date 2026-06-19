@@ -3,13 +3,13 @@
 -- Add any additional keymaps here
 require("config.cmera")
 require("config.codegen")
-vim.keymap.set("n", "<leader>cb", "<cmd>CmeraPreview<cr>", { desc = "C-Mera Preview" })
-vim.keymap.set("n", "<leader>cw", "<cmd>CmeraWrite<cr>", { desc = "C-Mera Write Output" })
-vim.keymap.set("n", "<leader>co", "<cmd>CmeraOpen<cr>", { desc = "C-Mera Write and Open Output" })
-vim.keymap.set("n", "<leader>cgr", "<cmd>CodegenRun<cr>", { desc = "Codegen Run" })
-vim.keymap.set("n", "<leader>cgd", "<cmd>CodegenDryRun<cr>", { desc = "Codegen Dry Run" })
-vim.keymap.set("n", "<leader>cgl", "<cmd>CodegenRollbackList<cr>", { desc = "Codegen Rollback List" })
-vim.keymap.set("n", "<leader>cgR", "<cmd>CodegenRollback<cr>", { desc = "Codegen Rollback" })
+vim.keymap.set("n", "<localleader>cb", "<cmd>CmeraPreview<cr>", { desc = "C-Mera Preview" })
+vim.keymap.set("n", "<localleader>cw", "<cmd>CmeraWrite<cr>", { desc = "C-Mera Write Output" })
+vim.keymap.set("n", "<localleader>co", "<cmd>CmeraOpen<cr>", { desc = "C-Mera Write and Open Output" })
+vim.keymap.set("n", "<localleader>cgr", "<cmd>CodegenRun<cr>", { desc = "Codegen Run" })
+vim.keymap.set("n", "<localleader>cgd", "<cmd>CodegenDryRun<cr>", { desc = "Codegen Dry Run" })
+vim.keymap.set("n", "<localleader>cgl", "<cmd>CodegenRollbackList<cr>", { desc = "Codegen Rollback List" })
+vim.keymap.set("n", "<localleader>cgR", "<cmd>CodegenRollback<cr>", { desc = "Codegen Rollback" })
 
 -- LazyGit
 vim.keymap.set("n", "<leader>gg", "<cmd>LazyGit<cr>", { desc = "LazyGit" })

@@ -1,17 +1,5 @@
 local M = {}
 
-local indent_words = {
-  "decl",
-  "function",
-  "implement",
-  "for",
-  "class",
-  "struct",
-  "union",
-  "constructor",
-  "destructor",
-}
-
 local keywords = {
   "auto",
   "bool",
@@ -114,13 +102,14 @@ local function current_file()
   end
 
   vim.cmd("silent! write")
-  return buf, vim.fn.fnamemodify(file, ":.")
+  return buf, vim.fn.fnamemodify(file, ":p")
 end
 
 local function run_cm(generator, file, callback)
   local cmd = { "cm", generator_arg(generator), file }
+  local cwd = vim.fn.fnamemodify(file, ":h")
 
-  vim.system(cmd, { text = true }, function(obj)
+  vim.system(cmd, { text = true, cwd = cwd }, function(obj)
     vim.schedule(function()
       if obj.code ~= 0 then
         local err = vim.trim(obj.stderr or obj.stdout or "")
@@ -248,9 +237,18 @@ vim.api.nvim_create_autocmd("FileType", {
   group = group,
   pattern = "lisp",
   callback = function()
-    vim.opt_local.lisp = true
-    vim.opt_local.lispwords:append(indent_words)
+    -- 縮排交給 parinfer (smart 模式)，不開內建 'lisp' 以免兩套縮排邏輯互相覆寫。
     vim.cmd("syntax keyword lispFunc " .. table.concat(keywords, " "))
+  end,
+})
+
+-- C-Mera 源碼 (.cmera) 靠 `cm` 重新產生，原始檔不需要 format-on-save。
+-- 關掉 LazyVim 的自動格式化，避免每次 :w 都對它跑 lisp_format。
+vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
+  group = group,
+  pattern = "*.cmera",
+  callback = function(args)
+    vim.b[args.buf].autoformat = false
   end,
 })
 
