@@ -2,6 +2,20 @@
 
 個人使用的 [LazyVim](https://github.com/LazyVim/LazyVim) 設定。
 
+## 安裝與套用
+
+Neovim 實際載入的預設設定目錄是 `~/.config/nvim`。若此 repository 位於其他路徑，
+需要將它連結或同步到該目錄；只修改 repository 不會自動影響目前使用中的 Neovim。
+
+以 symbolic link 安裝：
+
+```sh
+mv ~/.config/nvim ~/.config/nvim.bak
+ln -s /path/to/my_lazyvim_settings ~/.config/nvim
+```
+
+若不使用 symbolic link，更新設定後需自行將變更同步到 `~/.config/nvim`。
+
 ## 自訂快捷鍵
 
 `<leader>` 是 LazyVim 的 leader key，通常是 `<Space>`；`<localleader>` 設為 `,`。
@@ -73,6 +87,7 @@ Conjure 的鍵位前綴也是 `<localleader>`（`,`），與 C-Mera 的 `<locall
 | `gd` / `K` | 跳定義 / 查文件 |
 
 - **結構編輯（vim-sexp）已停用**（`cmera.lua` 對 `guns/vim-sexp` 與 regular-people mappings 設 `enabled=false`），所以 slurp/barf、括號跳轉等鍵未綁定；括號平衡改由 parinfer 自動處理（無鍵位）。
+- Lisp、Clojure、Scheme、Racket、Fennel、Hy 與 Janet 啟用 rainbow-delimiters，以不同顏色顯示巢狀括號。
 - 縮排交給 parinfer（`smart` 模式），未開啟內建 `'lisp'` 選項，避免兩套縮排邏輯互相覆寫。
 - `.cmera` 副檔名會被視為 `lisp` filetype（語法高亮、parinfer 都套用），但**不會** format-on-save。
 - Common Lisp 的 `lisp_format` 格式化需另外安裝對應執行檔，否則對 `.lisp` 存檔時會報錯。
@@ -92,3 +107,6 @@ C/C++（clangd + cmake）、Python、Rust、TypeScript、Java、.NET/C#、Git、
 
 - `localleader` 設為 `,`（`lua/config/options.lua`）。注意這會覆蓋內建的反向重複 `f`/`t` 動作。
 - C-Mera 與 codegen 的指令/autocmd 由 `lua/config/keymaps.lua` 透過 `require` 載入。
+- 已移除 LazyVim 的 `lazyvim_wrap_spell` autocmd，因此 Markdown、純文字、Typst、TeX 與 Git commit
+  buffer 預設不會啟用 Neovim 拼字檢查。可用 `:set spell` 暫時開啟，或用
+  `<leader>us` 切換。
