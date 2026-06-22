@@ -2,7 +2,9 @@ return {
   "stevearc/conform.nvim",
   opts = {
     formatters_by_ft = {
-      lisp = { "lisp_format" },
+      -- parinfer owns Lisp indentation and parenthesis structure.
+      -- An empty list explicitly disables whole-buffer formatting.
+      lisp = {},
     },
   },
 }

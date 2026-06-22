@@ -70,7 +70,7 @@ codegen 整合會優先使用 `~/repo/codegen/src` 搭配 `~/repo/codegen/.venv/
 
 | 方言 | filetype | REPL 連線方式 | 需要先準備 |
 | --- | --- | --- | --- |
-| Common Lisp | `lisp` | swank `127.0.0.1:4005` | 在 Lisp 端啟動 swank server（如 SBCL + `ql:quickload :swank`） |
+| Common Lisp | `lisp` | Swank `127.0.0.1:4005` | SBCL、Quicklisp、Swank；本機以 systemd user service 常駐 |
 | Fennel | `fennel` | stdio，呼叫 `fennel` | 系統需有 `fennel` 可執行檔 |
 | Hy | `hy` | stdio，呼叫 `hy -iu` | 系統需有 `hy` 可執行檔 |
 
@@ -90,8 +90,62 @@ Conjure 的鍵位前綴也是 `<localleader>`（`,`），與 C-Mera 的 `<locall
 - Lisp、Clojure、Scheme、Racket、Fennel、Hy 與 Janet 啟用 rainbow-delimiters，以不同顏色顯示巢狀括號。
 - 縮排交給 parinfer（`smart` 模式），未開啟內建 `'lisp'` 選項，避免兩套縮排邏輯互相覆寫。
 - `.cmera` 副檔名會被視為 `lisp` filetype（語法高亮、parinfer 都套用），但**不會** format-on-save。
-- Common Lisp 的 `lisp_format` 格式化需另外安裝對應執行檔，否則對 `.lisp` 存檔時會報錯。
+- Common Lisp 不執行 format-on-save；縮排與括號結構完全交給 parinfer，避免 formatter
+  重排整個 buffer 後與 parinfer 的結果互相覆寫。
 - parinfer 需要 `cargo`（首次安裝會 `cargo build --release`）。
+
+#### Common Lisp / Swank 工作流程
+
+本機將 Swank 設為 systemd user service，開機後由 SBCL 載入 Quicklisp 與 Swank，並只在
+loopback interface 的 `127.0.0.1:4005` 上監聽：
+
+```text
+systemd --user → SBCL → Quicklisp → Swank → 127.0.0.1:4005
+```
+
+相關的本機檔案（不屬於此 repository）：
+
+```text
+~/.config/common-lisp/swank-server.lisp
+~/.config/systemd/user/swank.service
+```
+
+service 已透過以下設定啟用：
+
+```bash
+systemctl --user enable --now swank.service
+loginctl enable-linger "$USER"
+```
+
+`enable-linger` 讓 user service 可在開機後、使用者尚未登入圖形桌面時啟動。常用管理指令：
+
+```bash
+systemctl --user status swank
+systemctl --user restart swank
+journalctl --user -u swank -f
+```
+
+Conjure 的 `client_on_load` 設為 `false`，所以開啟 `.lisp` 後不會自動連線。按 `,cc` 或執行
+`:ConjureConnect` 連上 Swank；按 `,cd` 中斷連線。
+
+這個全域常駐 Lisp image 適合學習、快速求值與個人工具。正式專案通常會各自啟動 SBCL、
+載入該專案的 ASDF system，再啟動專案專用的 Swank；這能避免不同專案共用 package、
+全域變數及已載入依賴。若同時開啟多個專案，應為各專案使用不同 port。
+
+#### 為何 Lisp 不使用 format-on-save
+
+parinfer 會在編輯過程中根據縮排維護括號結構，而整檔 formatter 會在存檔時重新排版。
+兩者同時啟用可能造成縮排跳動、括號位置被再次改寫，或 buffer 與預期結構不一致。
+
+因此 `lua/plugins/formatting.lua` 將 Lisp formatter 明確設為空清單：
+
+```lua
+formatters_by_ft = {
+  lisp = {},
+}
+```
+
+這不是停用 Conform 的其他語言格式化功能；只有 `lisp` filetype 不執行整檔 formatter。
 
 ### GDScript（Godot）
 
