@@ -11,17 +11,5 @@ vim.keymap.set("n", "<localleader>cgd", "<cmd>CodegenDryRun<cr>", { desc = "Code
 vim.keymap.set("n", "<localleader>cgl", "<cmd>CodegenRollbackList<cr>", { desc = "Codegen Rollback List" })
 vim.keymap.set("n", "<localleader>cgR", "<cmd>CodegenRollback<cr>", { desc = "Codegen Rollback" })
 
--- LazyGit
-vim.keymap.set("n", "<leader>gg", "<cmd>LazyGit<cr>", { desc = "LazyGit" })
-
--- Window resize
-vim.keymap.set("n", "<C-Up>", ":resize +2<CR>", { silent = true })
-vim.keymap.set("n", "<C-Down>", ":resize -2<CR>", { silent = true })
-vim.keymap.set("n", "<C-Left>", ":vertical resize -2<CR>", { silent = true })
-vim.keymap.set("n", "<C-Right>", ":vertical resize +2<CR>", { silent = true })
-
 -- jk to exit insert mode
 vim.keymap.set("i", "jk", "<Esc>", { desc = "Exit insert mode" })
-
--- Ctrl+S to save
-vim.keymap.set({ "n", "i", "v" }, "<C-s>", "<cmd>w<cr><esc>", { desc = "Save file" })

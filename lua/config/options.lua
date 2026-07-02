@@ -7,5 +7,3 @@ vim.g.maplocalleader = ","
 vim.opt.relativenumber = true
 vim.opt.scrolloff = 8
 vim.opt.colorcolumn = "100"
-vim.opt.undofile = true
-vim.opt.undodir = vim.fn.expand("~/.local/share/nvim/undo")
