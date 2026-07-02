@@ -1,53 +1,6 @@
 local M = {}
 
-local keywords = {
-  "auto",
-  "bool",
-  "char",
-  "class",
-  "comment",
-  "const",
-  "constructor",
-  "continue",
-  "cout",
-  "decl",
-  "destructor",
-  "double",
-  "endl",
-  "enum",
-  "float",
-  "for",
-  "from-namespace",
-  "function",
-  "include",
-  "inline",
-  "instantiate",
-  "int",
-  "long",
-  "main",
-  "pragma",
-  "printf",
-  "private",
-  "protected",
-  "public",
-  "pure",
-  "return",
-  "short",
-  "signed",
-  "sizeof",
-  "struct",
-  "switch",
-  "template",
-  "true",
-  "typedef",
-  "typename",
-  "unsigned",
-  "using-namespace",
-  "virtual",
-  "void",
-  "volatile",
-  "while",
-}
+-- C-Mera 關鍵字高亮見 queries/commonlisp/highlights.scm（treesitter query）。
 
 local generators = {
   c = { filetype = "c", extension = "c" },
@@ -142,6 +95,9 @@ local function write_output(out, content)
   return true
 end
 
+-- 重複執行 preview 時更新同一個視窗，而不是每次疊一個新的。
+local preview = {}
+
 local function preview_output(generator, content)
   if content == "" then
     notify("C-Mera 執行成功但沒有 stdout 輸出。", "warn")
@@ -151,26 +107,36 @@ local function preview_output(generator, content)
   local lines = vim.split(content:gsub("\r", ""), "\n")
   local meta = output_meta(generator)
 
-  if _G.Snacks then
-    local out_buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, lines)
-    vim.bo[out_buf].filetype = meta.filetype
+  local buf = preview.buf
+  if not (buf and vim.api.nvim_buf_is_valid(buf)) then
+    buf = vim.api.nvim_create_buf(false, true)
+    preview.buf = buf
+  end
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  if vim.bo[buf].filetype ~= meta.filetype then
+    vim.bo[buf].filetype = meta.filetype
+  end
 
-    _G.Snacks.win({
-      buf = out_buf,
+  if preview.win and vim.api.nvim_win_is_valid(preview.win) then
+    return
+  end
+
+  if _G.Snacks then
+    local win = _G.Snacks.win({
+      buf = buf,
       width = 0.45,
       position = "right",
       backdrop = false,
+      -- bufhidden 保持 hide，關窗後 buffer 留著給下一次 preview 重用
+      bo = { buftype = "nofile", bufhidden = "hide" },
       wo = { cursorline = true, number = true },
       keys = { ["q"] = "close" },
     })
+    preview.win = win and win.win
   else
-    vim.cmd("vnew")
-    local new_buf = vim.api.nvim_get_current_buf()
-    vim.api.nvim_buf_set_lines(new_buf, 0, -1, false, lines)
-    vim.bo[new_buf].filetype = meta.filetype
-    vim.bo[new_buf].buftype = "nofile"
-    vim.bo[new_buf].bufhidden = "wipe"
+    vim.cmd("vsplit")
+    preview.win = vim.api.nvim_get_current_win()
+    vim.api.nvim_win_set_buf(preview.win, buf)
   end
 end
 
@@ -232,15 +198,6 @@ vim.filetype.add({
 })
 
 local group = vim.api.nvim_create_augroup("user_cmera", { clear = true })
-
-vim.api.nvim_create_autocmd("FileType", {
-  group = group,
-  pattern = "lisp",
-  callback = function()
-    -- 縮排交給 parinfer (smart 模式)，不開內建 'lisp' 以免兩套縮排邏輯互相覆寫。
-    vim.cmd("syntax keyword lispFunc " .. table.concat(keywords, " "))
-  end,
-})
 
 -- C-Mera 源碼 (.cmera) 靠 `cm` 重新產生，原始檔不需要 format-on-save。
 -- 關掉 LazyVim 的自動格式化，避免每次 :w 都對它跑 lisp_format。

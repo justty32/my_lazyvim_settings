@@ -29,13 +29,10 @@ ln -s /path/to/my_lazyvim_settings ~/.config/nvim
 | `<localleader>cgd` | Normal | 對目前檔案執行 `codegen --dry-run` |
 | `<localleader>cgl` | Normal | 列出可用的 `codegen` rollback 備份 |
 | `<localleader>cgR` | Normal | 使用 `codegen rollback` 還原目前檔案 |
-| `<leader>gg` | Normal | 開啟 LazyGit |
-| `<C-Up>` | Normal | 增加視窗高度 |
-| `<C-Down>` | Normal | 減少視窗高度 |
-| `<C-Left>` | Normal | 減少視窗寬度 |
-| `<C-Right>` | Normal | 增加視窗寬度 |
 | `jk` | Insert | 離開 insert mode |
-| `<C-s>` | Normal / Insert / Visual | 儲存目前檔案 |
+
+LazyGit（`<leader>gg`）、視窗大小調整（`<C-方向鍵>`）與存檔（`<C-s>`）由 LazyVim 內建鍵位提供，
+不在此 repository 另行定義。
 
 ## 自訂命令
 
@@ -50,6 +47,8 @@ ln -s /path/to/my_lazyvim_settings ~/.config/nvim
 支援的 generator 包含 `c`、`c++`、`cxx`、`cuda`、`glsl`、`ocl`、`opencl`。
 `:CmeraBuild [generator]` 保留為相容舊設定的別名，等同 `:CmeraPreview [generator]`。
 
+重複執行 `:CmeraPreview` 會更新同一個 preview 視窗（關掉後 buffer 仍保留重用），不會疊出多個視窗。
+
 ### codegen
 
 | 命令 | 功能 |
@@ -59,7 +58,7 @@ ln -s /path/to/my_lazyvim_settings ~/.config/nvim
 | `:CodegenRollbackList [path...]` | 列出 rollback 備份 |
 | `:CodegenRollback [path...]` | 從 codegen 備份還原 |
 
-codegen 整合會優先使用 `~/repo/codegen/src` 搭配 `~/repo/codegen/.venv/bin/python`，因此不需要把 `codegen` console script 安裝到全域環境。
+codegen 整合會優先使用 `~/repo/codegen/src` 搭配 `~/repo/codegen/.venv/bin/python`，因此不需要把 `codegen` console script 安裝到全域環境。repo 位置可用環境變數 `CODEGEN_REPO` 覆蓋（未設定時 fallback 到 `~/repo/codegen`）。
 
 ## 語言環境
 
@@ -86,7 +85,9 @@ Conjure 的鍵位前綴也是 `<localleader>`（`,`），與 C-Mera 的 `<locall
 | `ls` / `lv` / `lt` / `lg` / `lq` | REPL log buffer：水平/垂直/分頁開、toggle、關閉 |
 | `gd` / `K` | 跳定義 / 查文件 |
 
-- **結構編輯（vim-sexp）已停用**（`cmera.lua` 對 `guns/vim-sexp` 與 regular-people mappings 設 `enabled=false`），所以 slurp/barf、括號跳轉等鍵未綁定；括號平衡改由 parinfer 自動處理（無鍵位）。
+- **未安裝結構編輯 plugin**（vim-sexp 之類），所以 slurp/barf、括號跳轉等鍵不存在；括號平衡由 parinfer 自動處理（無鍵位）。
+- Conjure 的 log HUD（右上角浮動視窗）已停用，避免求值時擋到程式碼；要看 log 用 `,ls` / `,lv` 開 log buffer。
+- C-Mera 關鍵字（`function`、`decl`、`int` 等）的高亮由 `queries/commonlisp/highlights.scm` 的 treesitter query 提供。
 - Lisp、Clojure、Scheme、Racket、Fennel、Hy 與 Janet 啟用 rainbow-delimiters，以不同顏色顯示巢狀括號。
 - 縮排交給 parinfer（`smart` 模式），未開啟內建 `'lisp'` 選項，避免兩套縮排邏輯互相覆寫。
 - `.cmera` 副檔名會被視為 `lisp` filetype（語法高亮、parinfer 都套用），但**不會** format-on-save。
@@ -152,10 +153,15 @@ formatters_by_ft = {
 GDScript 走 Godot editor 內建的 LSP（`lua/plugins/gdscript.lua`），連到 `127.0.0.1:6005`。
 **必須先開著 Godot editor**，補全與診斷才會生效；只開 Neovim 不會有 LSP。
 
+除錯走 Godot editor 內建的 DAP（`127.0.0.1:6006`，同樣要求 editor 開著）。在 `.gd` 檔設好斷點後，
+用 LazyVim 的 DAP 鍵位（`<leader>db` 設斷點、`<leader>dc` 啟動/繼續）即可透過 Godot 啟動場景除錯。
+
+Treesitter 另外安裝了 `gdshader` parser，`.gdshader` 檔有語法高亮。
+
 ### 已啟用的 LazyVim extras
 
-C/C++（clangd + cmake）、Python、Rust、TypeScript、Java、.NET/C#、Git、DAP、VS Code。
-語言清單見 `lazyvim.json`。
+C/C++（clangd + cmake）、Python、Rust、TypeScript、Java、.NET/C#、JSON、Markdown、TOML、YAML、
+Git、DAP、Testing（neotest）、VS Code。清單見 `lazyvim.json`。
 
 ## 其他慣例
 

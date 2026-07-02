@@ -15,6 +15,8 @@ return {
     ft = { "lisp" },
     init = function()
       vim.g["conjure#client_on_load"] = false
+      -- 關掉右上角的 HUD 浮動視窗，避免擋到程式碼；要看 log 用 ,ls 開
+      vim.g["conjure#log#hud#enabled"] = false
       vim.g["conjure#filetype#lisp"] = "conjure.client.common-lisp.swank"
       vim.g["conjure#client#common_lisp#swank#connection#default_host"] = "127.0.0.1"
       vim.g["conjure#client#common_lisp#swank#connection#default_port"] = 4005

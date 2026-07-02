@@ -18,7 +18,30 @@ return {
     "nvim-treesitter/nvim-treesitter",
     opts = function(_, opts)
       opts.ensure_installed = opts.ensure_installed or {}
-      vim.list_extend(opts.ensure_installed, { "gdscript", "godot_resource" })
+      vim.list_extend(opts.ensure_installed, { "gdscript", "godot_resource", "gdshader" })
+    end,
+  },
+  {
+    "mfussenegger/nvim-dap",
+    optional = true,
+    opts = function()
+      local dap = require("dap")
+      -- Godot editor must be running; it exposes DAP on port 6006
+      dap.adapters.godot = dap.adapters.godot
+        or {
+          type = "server",
+          host = "127.0.0.1",
+          port = 6006,
+        }
+      dap.configurations.gdscript = dap.configurations.gdscript
+        or {
+          {
+            type = "godot",
+            request = "launch",
+            name = "Launch scene",
+            project = "${workspaceFolder}",
+          },
+        }
     end,
   },
 }

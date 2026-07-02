@@ -1,6 +1,6 @@
 local M = {}
 
-local repo = vim.fn.expand("~/repo/codegen")
+local repo = vim.env.CODEGEN_REPO or vim.fn.expand("~/repo/codegen")
 local src = repo .. "/src"
 local venv_python = repo .. "/.venv/bin/python"
 
