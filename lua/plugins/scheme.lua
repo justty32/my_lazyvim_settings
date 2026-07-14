@@ -12,6 +12,17 @@
 -- ⚠ 別去編 libc_s7.so：有它的話 s7 的 REPL 會啟用終端控制碼的花俏模式，跳脫序列會汙染 Conjure
 --   的 stdio 管線。沒有它 s7 只是印一行 load failed 的警告、退回純文字 REPL——那正是這裡要的。
 --
+-- ★★★ 為什麼要包一層 stdbuf -o0（拿掉的話 REPL 會「起得來但永遠不回話」）
+--   Conjure 的 stdio client 是靠「看到 prompt 字串」來判斷一次求值回完了沒。而 s7 的 `> ` prompt
+--   走 **stdout**，stdout 接到 pipe（不是終端機）時 libc 預設是**全緩衝**——prompt 只有 2 bytes，
+--   永遠填不滿 4KB 緩衝區，於是卡在 libc 裡出不來。Conjure 等不到 prompt，就一直認為「還沒回完」，
+--   結果是：log 顯示 REPL started、eval 也送出去了，但**結果一行都不會出現**。
+--   （s7 的 banner 走 stderr、stderr 無緩衝，所以你只看得到 banner——更像是「壞得很安靜」。）
+--   在 shell 裡 `printf '(+ 1 2)' | s7` 之所以看得到 prompt 和結果，是因為 s7 讀到 EOF 就結束，
+--   **退出時 libc 會 flush**——所以那個測法無法暴露這個 bug，別拿它當「REPL 沒問題」的證據。
+--   stdbuf -o0 用 LD_PRELOAD 把 s7 的 stdout 改成無緩衝，prompt 就即時出得來。
+--   注意必須是 -o0（無緩衝）不能是 -oL（行緩衝）：prompt 結尾沒有換行，行緩衝一樣不會 flush。
+--
 -- 用法：cd 到 galtxt/try_1 再開 nvim（Conjure 的 stdio client 在 nvim 的 cwd 起 s7，
 --   `(load "llm.scm")` 這種相對路徑才對得上）。`,ee` 求值；`,ls` / `,lv` 開 REPL log。
 --
@@ -26,12 +37,21 @@ local function s7_command()
   end
   table.insert(candidates, vim.fn.expand("~/repo/pas/derived/s7-playground/s7"))
 
+  local s7 = "s7" -- 都沒有就賭 PATH 上有；沒有的話 Conjure 會在 log 裡報起不了 REPL
   for _, path in ipairs(candidates) do
     if vim.fn.executable(path) == 1 then
-      return path
+      s7 = path
+      break
     end
   end
-  return "s7" -- 都沒有就賭 PATH 上有；沒有的話 Conjure 會在 log 裡報起不了 REPL
+
+  -- ⚠ 回傳**字串**不要回傳 table：Conjure 的 display-repl-status 會把 command 直接字串串接，
+  --   completions 也會對它做 string.match——給 table 兩邊都會炸。字串會被 Conjure 依空白切開，
+  --   所以路徑不能有空白（s7 的候選路徑都沒有，成立）。
+  if vim.fn.executable("stdbuf") == 1 then
+    return "stdbuf -o0 " .. s7 -- 見上方 ★★★：不包這層的話 prompt 出不來，REPL 會永遠不回話
+  end
+  return s7 -- 沒有 stdbuf（非 GNU coreutils 環境）：REPL 大概率會卡住，但至少不會直接起不來
 end
 
 return {
