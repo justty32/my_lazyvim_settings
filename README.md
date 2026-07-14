@@ -72,6 +72,30 @@ codegen 整合會優先使用 `~/repo/codegen/src` 搭配 `~/repo/codegen/.venv/
 | Common Lisp | `lisp` | Swank `127.0.0.1:4005` | SBCL、Quicklisp、Swank；本機以 systemd user service 常駐 |
 | Fennel | `fennel` | stdio，呼叫 `fennel` | 系統需有 `fennel` 可執行檔 |
 | Hy | `hy` | stdio，呼叫 `hy -iu` | 系統需有 `hy` 可執行檔 |
+| Scheme（s7） | `scheme` | stdio，呼叫 s7 的 REPL | 見下方「Scheme（s7）」 |
+
+#### Scheme（s7）
+
+`lua/plugins/scheme.lua`。Conjure 內建的 scheme stdio client 預設指向 `mit-scheme`，這裡改指到
+**s7**（`ai_core` 的 galtxt try_1 那條線用的就是 s7，開發哲學是「REPL 一直開、邊寫邊試」）。
+
+s7 的 REPL 二進位**不在任何 repo 裡**（s7 原始碼不託管），先自己編出來：
+
+```sh
+cd ~/repo/pas/derived/s7-playground
+bash setup.sh    # 從 ccrma 抓 s7.c / s7.h 與隨附庫
+bash build.sh    # → ./s7
+```
+
+指令路徑的解析順序：`$S7_REPL` → `~/repo/pas/derived/s7-playground/s7` → PATH 上的 `s7`。
+換機器或放別的地方，設 `S7_REPL` 環境變數即可（與 galtxt `try_1/build.sh` 找 s7 原始碼時
+`$S7_DIR` 是同一套慣例）。prompt pattern 設成 `"> "`（s7 的提示字元，Conjure 預設那個是給
+mit-scheme 的、對不上）。
+
+- **用法**：`cd` 到 `try_1` 再開 nvim——Conjure 的 stdio client 是在 nvim 的 cwd 起 s7，
+  腳本裡 `(load "llm.scm")` 這種相對路徑才對得上。然後 `,ee` 求值游標所在 form、`,ls` 開 REPL log。
+- ⚠ **別去編 `libc_s7.so`**：有它的話 s7 的 REPL 會啟用終端控制碼的花俏模式，跳脫序列會汙染
+  Conjure 的 stdio 管線。沒有它 s7 只是印一行 `load … failed` 的警告、退回純文字 REPL——那正是要的。
 
 Conjure 的鍵位前綴也是 `<localleader>`（`,`），與 C-Mera 的 `<localleader>c…` 不衝突（Conjure 不用 `c` 開頭）。常用鍵：
 
@@ -157,6 +181,28 @@ GDScript 走 Godot editor 內建的 LSP（`lua/plugins/gdscript.lua`），連到
 用 LazyVim 的 DAP 鍵位（`<leader>db` 設斷點、`<leader>dc` 啟動/繼續）即可透過 Godot 啟動場景除錯。
 
 Treesitter 另外安裝了 `gdshader` parser，`.gdshader` 檔有語法高亮。
+
+### 除錯：直接吃專案裡的 VSCode `launch.json`
+
+`lua/plugins/dap.lua`。nvim-dap 會**自動、按需**讀取 cwd 底下的 `.vscode/launch.json`
+（`dap.providers.configs["dap.launch.json"]`），所以**除錯設定不必為 nvim 另外維護一份**——
+`cd` 到專案再開 nvim，`<leader>dc` 就會列出 launch.json 裡的設定。前提是 `"type"` 對得上
+nvim 這邊註冊過的 adapter，這個檔就是在補那層對應：
+
+| launch.json 的 `type` | 後端 | 怎麼來的 |
+| --- | --- | --- |
+| `cppdbg` | cpptools（gdb/MI） | mason-nvim-dap 的對應表本來就有 `cppdbg → cpptools`，只要把 `cpptools` 列進 mason 的 `ensure_installed` 即可 |
+| `lua-local` | [local-lua-debugger-vscode](https://github.com/tomblind/local-lua-debugger-vscode)（純 Lua、不需原生模組） | **不在** mason-nvim-dap 的對應表裡，adapter 在 `dap.lua` 手動註冊 |
+
+- **別把 `cppdbg` 別名到 codelldb**：mason-nvim-dap 開了 `automatic_installation`，它的 handler 會在
+  你的 `opts` 之後跑、把別名蓋掉，白費工。讓 `cppdbg` 就是真的 cppdbg 還有個好處——launch.json 裡的
+  `setupCommands`（gdb 整齊列印、UTF-8 字元集）原樣生效，與 Windows 同語意。
+- **機器專屬路徑要放平台區塊**：launch.json 支援 `"windows"` / `"linux"` / `"osx"` 子物件，該平台的鍵
+  會被合併到頂層（VSCode 與 nvim-dap 都支援）。所以像 `miDebuggerPath` 這種寫死 Windows gdb 路徑的欄位
+  要塞進 `"windows": { … }`——Linux 側不給，cpptools 就用 PATH 上的 `gdb`。**一份 launch.json 兩台機器共用**
+  的關鍵就在這。
+- ⚠ **nvim 不會跑 `preLaunchTask`**（那是 VSCode `tasks.json` 的機制）——除錯前要自己先建置。
+- ⚠ `lua-local` 需要 `node` 在 PATH 上（本機 node 由 fnm 管理，從桌面啟動器開的 nvim 可能沒有）。
 
 ### 已啟用的 LazyVim extras
 
