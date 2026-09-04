@@ -191,15 +191,23 @@ nvim 這邊註冊過的 adapter，這個檔就是在補那層對應：
 
 | launch.json 的 `type` | 後端 | 怎麼來的 |
 | --- | --- | --- |
-| `cppdbg` | cpptools（gdb/MI） | mason-nvim-dap 的對應表本來就有 `cppdbg → cpptools`，只要把 `cpptools` 列進 mason 的 `ensure_installed` 即可 |
+| `cppdbg` | **codelldb**（LLDB） | VSCode 上 `cppdbg` 是 cpptools（gdb/MI）；Linux 這邊改接 codelldb（LazyVim clangd extra 已帶進來），`dap.lua` 用 function adapter 轉一手，launch.json 的 `type` 一個字都不用改 |
 | `lua-local` | [local-lua-debugger-vscode](https://github.com/tomblind/local-lua-debugger-vscode)（純 Lua、不需原生模組） | **不在** mason-nvim-dap 的對應表裡，adapter 在 `dap.lua` 手動註冊 |
 
-- **別把 `cppdbg` 別名到 codelldb**：mason-nvim-dap 開了 `automatic_installation`，它的 handler 會在
-  你的 `opts` 之後跑、把別名蓋掉，白費工。讓 `cppdbg` 就是真的 cppdbg 還有個好處——launch.json 裡的
-  `setupCommands`（gdb 整齊列印、UTF-8 字元集）原樣生效，與 Windows 同語意。
+- **`cppdbg` 為什麼不用 cpptools**：mason 的對應表確實有 `cppdbg → cpptools`，但 cpptools 是微軟那包
+  ~90MB 的 VSCode 擴充，mason 從 GitHub release 抓它極慢又常斷；codelldb 早就在、功能也夠，不值得為了
+  「名稱名副其實」扛那 90MB。⚠ 只要註冊了 `cppdbg` 這個名字，mason-nvim-dap 的 `automatic_installation`
+  就會去抓 cpptools，所以 `dap.lua` 用 `automatic_installation = { exclude = { "cppdbg" } }` 明講別碰它。
+- **代價**：codelldb（LLDB）不認得 launch.json 裡 cpptools 專屬的欄位（`MIMode`、`miDebuggerPath`、
+  `setupCommands` 的 pretty-printing / UTF-8）——會被忽略，但實務沒差，LLDB 內建 STL 整齊列印、UTF-8 也正常。
+  那些欄位留給 Windows 的 VSCode 用即可。
+- ⚠ **Lua 5.5 相容性修補**：`local-lua-debugger-vscode`（0.3.3）注入的 `lldebugger.lua` 會對 generic
+  for 的控制變數賦值，而 Lua 5.5 把它改成唯讀（const），於是載入直接編譯失敗、除錯器起不來（症狀很賊：
+  session 起得來、中斷點顯示 verified，然後程式直接跑完什麼都沒停）。`dap.lua` 每次啟動做一次**冪等修補**
+  （比對到壞樣子才改一行變數名），mason 更新覆蓋掉也會再修回來，上游哪天修好就自動 no-op。
 - **機器專屬路徑要放平台區塊**：launch.json 支援 `"windows"` / `"linux"` / `"osx"` 子物件，該平台的鍵
   會被合併到頂層（VSCode 與 nvim-dap 都支援）。所以像 `miDebuggerPath` 這種寫死 Windows gdb 路徑的欄位
-  要塞進 `"windows": { … }`——Linux 側不給，cpptools 就用 PATH 上的 `gdb`。**一份 launch.json 兩台機器共用**
+  要塞進 `"windows": { … }`——Linux 側 codelldb 反正也用不到。**一份 launch.json 兩台機器共用**
   的關鍵就在這。
 - ⚠ **nvim 不會跑 `preLaunchTask`**（那是 VSCode `tasks.json` 的機制）——除錯前要自己先建置。
 - ⚠ `lua-local` 需要 `node` 在 PATH 上（本機 node 由 fnm 管理，從桌面啟動器開的 nvim 可能沒有）。
