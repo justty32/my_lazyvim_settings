@@ -77,24 +77,60 @@ codegen 整合會優先使用 `~/repo/codegen/src` 搭配 `~/repo/codegen/.venv/
 
 #### Janet 開發
 
+想學設定與排查方法，見[這次 Janet 設定的學習筆記](docs/README.md)。
+
 Conjure 的所有 client 與啟動設定集中於 `lua/plugins/conjure.lua`，避免多份 plugin `init`
 互相覆蓋。Janet 使用 stdio client，開啟 `.janet` 自動啟動 REPL；Common Lisp 仍手動連線。
 
-1. 在專案根目錄開啟 `nvim main.janet`，讓 REPL 的工作目錄與專案一致。
-2. `,ee` 求值目前 form，`,er` 求值最外層 form，`,eb` 求值整個 buffer。
-3. 預設用右上角 HUD 預覽結果，`,lh` 切換大／小預覽，不會重新求值。
-   `,ll` 開啟或聚焦結果 buffer 並跳到最新一段；`G` 在結果 buffer 跳到最後一行。
-   `,ls` 開啟下方結果 buffer，`Ctrl-w k` 回到程式碼；`,lt` 開成獨立分頁，`gT` 回前一分頁。
-   `,le` 在目前視窗切到 log，按 `q` 會回到原程式碼 buffer。
-   焦點在結果 buffer 時按 `q` 關閉該視窗／分頁，保留結果紀錄與 REPL；在程式碼內則用 `,lq` 關閉結果視窗。
-   結果 buffer 可搜尋、捲動與複製，開著時不再跳 HUD；`K` 查詢游標處符號的文件。
-4. `,cS` 停止 REPL，`,cs` 重新啟動。換專案時另開 Neovim，避免沿用前一個專案的 REPL 狀態。
+在專案根目錄開啟 `nvim main.janet`，讓 REPL 的工作目錄與專案一致。
+換專案時另開 Neovim，避免沿用前一個專案的 REPL 狀態。
+
+| 按鍵 | 功能 |
+| --- | --- |
+| `,ee` / `,er` / `,eb` | 求值目前 form／最外層 form／整個 buffer |
+| `,lh` | 放大／縮小浮動預覽，不重新求值 |
+| `,ll` | 開啟或聚焦 log，跳到最新一段結果 |
+| `,ls` | 在下方開啟 log；`Ctrl-w k` 回到上方程式碼 |
+| `,lt` | 在獨立 tab 開啟 log；`gt`／`gT` 切換分頁 |
+| `,le` | 在目前視窗切到 log；`q` 回到原程式碼 buffer |
+| `q`（結果 buffer 內） | 關閉結果 split／tab，或從 `,le` 返回原程式碼；保留紀錄與 REPL |
+| `,lq` | 關閉目前分頁的結果視窗 |
+| `G`（結果 buffer 內） | 跳到 log 最後一行 |
+| `,cS` / `,cs` | 停止／啟動 REPL |
+| `K` | 查詢游標處符號的 REPL 文件 |
+
+預設用浮動 HUD 預覽；完整結果 buffer 可以搜尋、捲動、複製，開著時不再跳 HUD。
+所有結果視窗預設折行，尺寸見[顯示長行](#顯示長行)。
+Neovim 的 tab 是一組視窗配置，buffer 則是檔案／log 內容；`:tabs` 可查看分頁，
+頂部的 buffer 列表不等同於 tab 列表。
 
 `janet_simple` Treesitter parser 提供高亮，rainbow-delimiters 顯示巢狀括號，parinfer smart
 模式維護括號與縮排。`janet-lsp --stdio` 提供補全、hover 與診斷；以 `project.janet`／`.git`
 辨識專案根目錄，使用 PATH 上既有的 `janet-lsp`，不透過 Mason 安裝。未配置 Janet DAP。
 `K` 保留 Conjure 的 REPL 文件查詢，LSP hover 可用 `:lua vim.lsp.buf.hover()`。
 `jpm` 用於專案需要的套件／建置工作，與 `janet` 一樣是 repo 外的相依。
+
+##### 中文結果與 UTF-8
+
+Janet 的 REPL 值表示法會把字串中的中文印成 `\xE4\xBD…`；這不是 Neovim 編碼錯誤。
+要閱讀文字內容，對下列表達式按 `,ee`：
+
+```janet
+(print "你好，世界")
+```
+
+log 會印出正常中文，另可能顯示 `print` 的回傳值 `nil`。現機實測 `pp` 與 `%q`／`%p` 等
+pretty 格式仍會跳脫中文；本設定保留 Janet 原始結果，不對 log 自動解碼。
+
+##### 間歇失效的排查
+
+LSP attach／detach 會讓 which-key 清除該 buffer 的快捷鍵前綴；Conjure 隱藏 log 可能讓
+which-key 的 buffer 追蹤停在 log，造成程式碼的逗號前綴沒有重建。
+修復在 [`lua/plugins/which-key.lua`](lua/plugins/which-key.lua)，回歸案例在
+[`tests/which-key.lua`](tests/which-key.lua)。
+
+若再次發生，先保留現場，不要重開 Neovim 或重啟 REPL；確認 mode、`,ee` 映射、逗號前綴、
+log 是否收到新結果及目前顯示的視窗，再判斷是按鍵、求值還是顯示問題。
 
 #### Scheme（s7）
 
@@ -257,7 +293,7 @@ nvim --headless -i NONE '+luafile tests/which-key.lua'
 ```
 
 測試在暫存專案驗證 REPL 求值、狀態保留、相對 import、重啟、Janet LSP hover、
-高亮、鍵位與折行設定，以及 Common Lisp 手動連線和 Markdown 格式化設定。
+高亮、鍵位、折行、預覽縮放、`,ll` 重用 log、`,le` 返回原 buffer、split／tab 的 `q`，
+以及 Common Lisp 手動連線和 Markdown 格式化設定。
 
-`lua/plugins/which-key.lua` 在 LSP attach／detach 後重建快捷鍵前綴，避免 Conjure 隱藏 log
-使 which-key 停留在錯誤 buffer，造成程式碼內慢速輸入 `,ee` 時失效。
+第二支測試重現 which-key 前綴遺失，並核對 LSP 事件後的恢復。
