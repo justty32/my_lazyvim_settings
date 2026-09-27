@@ -30,6 +30,22 @@ return {
   {
     "Olical/conjure",
     ft = { "lisp", "fennel", "hy", "scheme", "janet" },
+    keys = {
+      {
+        "<localleader>lh",
+        function()
+          local expanded = vim.g["conjure#log#hud#width"] > 0.6
+          vim.g["conjure#log#hud#width"] = expanded and 0.55 or 0.85
+          vim.g["conjure#log#hud#height"] = expanded and 0.4 or 0.75
+          -- 重新建立預覽套用尺寸，沿用既有 log，不重新求值。
+          local log = require("conjure.log")
+          log["close-hud"]()
+          require("conjure.hook").exec("display-hud", {})
+        end,
+        ft = { "janet", "lisp", "fennel", "hy", "scheme" },
+        desc = "Toggle REPL preview size",
+      },
+    },
     init = function()
       vim.g["conjure#client_on_load"] = false
       vim.g["conjure#log#hud#enabled"] = true

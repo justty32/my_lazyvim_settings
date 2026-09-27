@@ -82,7 +82,9 @@ Conjure 的所有 client 與啟動設定集中於 `lua/plugins/conjure.lua`，�
 
 1. 在專案根目錄開啟 `nvim main.janet`，讓 REPL 的工作目錄與專案一致。
 2. `,ee` 求值目前 form，`,er` 求值最外層 form，`,eb` 求值整個 buffer。
-3. `,ls` 開啟下方結果 buffer，`Ctrl-w k` 回到程式碼，`,lq` 關閉結果視窗。
+3. 預設用右上角 HUD 預覽結果，`,lh` 切換大／小預覽，不會重新求值。
+   `,ls` 開啟下方結果 buffer，`Ctrl-w k` 回到程式碼；`,lt` 開成獨立分頁，`gT` 回前一分頁。
+   `,lq` 關閉目前分頁的結果視窗。
    結果 buffer 可搜尋、捲動與複製，開著時不再跳 HUD；`K` 查詢游標處符號的文件。
 4. `,cS` 停止 REPL，`,cs` 重新啟動。換專案時另開 Neovim，避免沿用前一個專案的 REPL 狀態。
 
@@ -239,8 +241,9 @@ Git、DAP、Testing（neotest）、VS Code。清單見 `lazyvim.json`。
 
 主編輯視窗啟用 `wrap`、`linebreak`、`breakindent`：長行依視窗寬度折行，檔案內容不變。
 Conjure 的 log 另以 `conjure#log#wrap` 開啟折行，浮動預覽和完整 log buffer 都適用。
-未開完整結果 buffer 時，HUD 使用約 55% 畫面寬、40% 畫面高；超過視窗高度的結果用 `,ls`
-展開捲動查看。這些設定在重開 Neovim 後生效。
+未開完整結果 buffer 時，HUD 使用約 55% 畫面寬、40% 畫面高；`,lh` 切到 85% 寬、75% 高，
+再按一次還原。浮動預覽不接受焦點；需要捲動、搜尋、複製時，用 `,ls` 或 `,lt` 展開完整 log。
+這些設定在重開 Neovim 後生效。
 
 ## 本機驗證
 
