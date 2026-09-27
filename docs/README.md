@@ -150,3 +150,9 @@ LSP 連線會觸發 `LspAttach`，多個 plugin 都可能處理這個事件。
 待修復並驗證分析不會執行初始化式後，才能恢復 LSP。本輪未修改 VS Code 的獨立 LSP 設定。
 使用者提到的「不少錯誤」尚缺原始訊息；當時通知歷史沒有該批錯誤，REPL log 只找到
 `unknown symbol res`，不可把這筆錯誤與 LSP 副作用直接視為同一問題。
+
+### 後續修復完成
+
+已找到 `filter` 空陣列為真值的根因，套用最小 patch 並建置 Neovim 專用 image。
+修正版 LSP 已恢復；核心 evaluator、LSP 協定與 Neovim 整合測試均通過。
+安裝與限制統一見 [Janet LSP 修復紀錄](janet-lsp.md)。

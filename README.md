@@ -105,11 +105,10 @@ Neovim 的 tab 是一組視窗配置，buffer 則是檔案／log 內容；`:tabs
 頂部的 buffer 列表不等同於 tab 列表。
 
 `janet_simple` Treesitter parser 提供高亮，rainbow-delimiters 顯示巢狀括號，parinfer smart
-模式維護括號與縮排。**Janet LSP 暫停自動啟動**：本機實測它會執行 `def` 初始化式，
-開啟／分析帶副作用的檔案可能觸發模型請求。`lua/plugins/janet.lua` 保留設定但標為
-`enabled = false`；必須先修復並驗證無副作用，才重新開啟。
-Conjure REPL、`K` 文件查詢與 Treesitter 不受影響；目前沒有 Janet LSP 補全／診斷或 DAP。
-詳見[排錯紀錄](docs/README.md#後續發現janet-lsp-會執行初始化式)。
+模式維護括號與縮排。Janet LSP 已恢復，使用修正初始化式判斷的獨立 image，提供補全、hover
+與診斷；分析程序以唯讀檔案系統及獨立網路 namespace 執行，Conjure 求值不受影響。
+`K` 保留 Conjure 文件查詢；LSP hover 可用 `:lua vim.lsp.buf.hover()`。未配置 Janet DAP。
+建置方法、相依、已知限制與測試見 [Janet LSP 修復紀錄](docs/janet-lsp.md)。
 `jpm` 用於專案需要的套件／建置工作，與 `janet` 一樣是 repo 外的相依。
 
 ##### 中文結果與 UTF-8
@@ -295,14 +294,15 @@ Conjure 的 log 另以 `conjure#log#wrap` 開啟折行，浮動預覽和完整 l
 
 ## 本機驗證
 
-安裝好 plugin 與 Janet 後，在本 repo 執行：
+安裝好 plugin、Janet 並建置修正版 LSP 後，在本 repo 執行：
 
 ```sh
 nvim --headless -i NONE '+luafile tests/conjure.lua'
 nvim --headless -i NONE '+luafile tests/which-key.lua'
+python3 tests/janet-lsp-protocol.py
 ```
 
-測試在暫存專案驗證 REPL 求值、狀態保留、相對 import、重啟、Janet LSP 不自動啟動、
+測試在暫存專案驗證 REPL 求值、狀態保留、相對 import、重啟、修正版 Janet LSP hover、
 高亮、鍵位、折行、預覽縮放、`,ll` 重用 log、`,le` 返回原 buffer、split／tab 的 `q`，
 以及 Common Lisp 手動連線和 Markdown 格式化設定。
 

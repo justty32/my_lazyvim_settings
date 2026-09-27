@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Neovim 專用：修正版 image 在唯讀檔案系統、獨立網路 namespace 內執行。
+set -euo pipefail
+image_path=${1:?Usage: janet-lsp IMAGE_PATH}
+shift
+[[ -r "$image_path" ]] || { echo 'Janet LSP image missing; run scripts/install-janet-lsp.sh' >&2; exit 1; }
+janet_bin=$(command -v janet)
+exec bwrap --die-with-parent --new-session --unshare-pid --unshare-net \
+  --ro-bind / / --dev /dev --proc /proc \
+  -- "$janet_bin" -i "$image_path" --stdio "$@"

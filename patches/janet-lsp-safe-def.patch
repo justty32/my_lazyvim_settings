@@ -1,0 +1,13 @@
+diff --git a/src/eval.janet b/src/eval.janet
+index e6706dc..e58393b 100644
+--- a/src/eval.janet
++++ b/src/eval.janet
+@@ -21,7 +21,7 @@
+     true))
+ 
+ (varfn is-safe-def :private [x]
+-  (or (filter |(= $ :flycheck) (tuple/slice x 2 -2))
++  (or (some |(= $ :flycheck) (tuple/slice x 2 -2))
+       (no-side-effects (last x))))
+ 
+ (set safe-forms {'defn true 'varfn true 'defn- true 'defmacro true 'defmacro- true

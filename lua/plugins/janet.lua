@@ -5,9 +5,14 @@ return {
     opts = {
       servers = {
         janet_lsp = {
-          -- 現機已確認 LSP 會執行 def 初始化式，可能觸發模型請求。
-          -- 修正並驗證分析無副作用後才能重新啟用；Conjure REPL 不受影響。
-          enabled = false,
+          -- 只用已建置的修正版；缺依賴時不回退到會執行初始化式的全域 LSP。
+          enabled = vim.fn.executable("bwrap") == 1 and vim.fn.executable("janet") == 1 and vim.fn.filereadable(
+            vim.fn.stdpath("data") .. "/janet-lsp-fixed/janet-lsp.jimage"
+          ) == 1,
+          cmd = {
+            vim.fn.stdpath("config") .. "/scripts/janet-lsp",
+            vim.fn.stdpath("data") .. "/janet-lsp-fixed/janet-lsp.jimage",
+          },
           mason = false,
           root_markers = { "project.janet", ".git" },
         },
