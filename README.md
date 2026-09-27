@@ -72,11 +72,29 @@ codegen 整合會優先使用 `~/repo/codegen/src` 搭配 `~/repo/codegen/.venv/
 | Common Lisp | `lisp` | Swank `127.0.0.1:4005` | SBCL、Quicklisp、Swank；本機以 systemd user service 常駐 |
 | Fennel | `fennel` | stdio，呼叫 `fennel` | 系統需有 `fennel` 可執行檔 |
 | Hy | `hy` | stdio，呼叫 `hy -iu` | 系統需有 `hy` 可執行檔 |
+| Janet | `janet` | stdio，呼叫 `janet -n -s` | PATH 上需有 `janet` |
 | Scheme（s7） | `scheme` | stdio，呼叫 s7 的 REPL | 見下方「Scheme（s7）」 |
+
+#### Janet 開發
+
+Conjure 的所有 client 與啟動設定集中於 `lua/plugins/conjure.lua`，避免多份 plugin `init`
+互相覆蓋。Janet 使用 stdio client，開啟 `.janet` 自動啟動 REPL；Common Lisp 仍手動連線。
+
+1. 在專案根目錄開啟 `nvim main.janet`，讓 REPL 的工作目錄與專案一致。
+2. `,ee` 求值目前 form，`,er` 求值最外層 form，`,eb` 求值整個 buffer。
+3. `,ls` 開啟下方結果 buffer，`Ctrl-w k` 回到程式碼，`,lq` 關閉結果視窗。
+   結果 buffer 可搜尋、捲動與複製，開著時不再跳 HUD；`K` 查詢游標處符號的文件。
+4. `,cS` 停止 REPL，`,cs` 重新啟動。換專案時另開 Neovim，避免沿用前一個專案的 REPL 狀態。
+
+`janet_simple` Treesitter parser 提供高亮，rainbow-delimiters 顯示巢狀括號，parinfer smart
+模式維護括號與縮排。`janet-lsp --stdio` 提供補全、hover 與診斷；以 `project.janet`／`.git`
+辨識專案根目錄，使用 PATH 上既有的 `janet-lsp`，不透過 Mason 安裝。未配置 Janet DAP。
+`K` 保留 Conjure 的 REPL 文件查詢，LSP hover 可用 `:lua vim.lsp.buf.hover()`。
+`jpm` 用於專案需要的套件／建置工作，與 `janet` 一樣是 repo 外的相依。
 
 #### Scheme（s7）
 
-`lua/plugins/scheme.lua`。Conjure 內建的 scheme stdio client 預設指向 `mit-scheme`，這裡改指到
+`lua/plugins/conjure.lua`。Conjure 內建的 scheme stdio client 預設指向 `mit-scheme`，這裡改指到
 **s7**（`ai_core` 的 galtxt try_1 那條線用的就是 s7，開發哲學是「REPL 一直開、邊寫邊試」）。
 
 s7 的 REPL 二進位**不在任何 repo 裡**（s7 原始碼不託管），先自己編出來：
@@ -110,7 +128,7 @@ Conjure 的鍵位前綴也是 `<localleader>`（`,`），與 C-Mera 的 `<locall
 | `gd` / `K` | 跳定義 / 查文件 |
 
 - **未安裝結構編輯 plugin**（vim-sexp 之類），所以 slurp/barf、括號跳轉等鍵不存在；括號平衡由 parinfer 自動處理（無鍵位）。
-- Conjure 的 log HUD（右上角浮動視窗）已停用，避免求值時擋到程式碼；要看 log 用 `,ls` / `,lv` 開 log buffer。
+- Conjure 結果視窗支援折行；`,ls` 在下方開啟約三分之一高度的 log buffer，`,lv` 則在側邊開啟。
 - C-Mera 關鍵字（`function`、`decl`、`int` 等）的高亮由 `queries/commonlisp/highlights.scm` 的 treesitter query 提供。
 - Lisp、Clojure、Scheme、Racket、Fennel、Hy 與 Janet 啟用 rainbow-delimiters，以不同顏色顯示巢狀括號。
 - 縮排交給 parinfer（`smart` 模式），未開啟內建 `'lisp'` 選項，避免兩套縮排邏輯互相覆寫。
@@ -216,3 +234,21 @@ Git、DAP、Testing（neotest）、VS Code。清單見 `lazyvim.json`。
 - 已移除 LazyVim 的 `lazyvim_wrap_spell` autocmd，因此 Markdown、純文字、Typst、TeX 與 Git commit
   buffer 預設不會啟用 Neovim 拼字檢查。可用 `:set spell` 暫時開啟，或用
   `<leader>us` 切換。
+
+## 顯示長行
+
+主編輯視窗啟用 `wrap`、`linebreak`、`breakindent`：長行依視窗寬度折行，檔案內容不變。
+Conjure 的 log 另以 `conjure#log#wrap` 開啟折行，浮動預覽和完整 log buffer 都適用。
+未開完整結果 buffer 時，HUD 使用約 55% 畫面寬、40% 畫面高；超過視窗高度的結果用 `,ls`
+展開捲動查看。這些設定在重開 Neovim 後生效。
+
+## 本機驗證
+
+安裝好 plugin、Janet 與 janet-lsp 後，在本 repo 執行：
+
+```sh
+nvim --headless -i NONE '+luafile tests/conjure.lua'
+```
+
+測試在暫存專案驗證 REPL 求值、狀態保留、相對 import、重啟、Janet LSP hover、
+高亮、鍵位與折行設定，以及 Common Lisp 手動連線和 Markdown 格式化設定。

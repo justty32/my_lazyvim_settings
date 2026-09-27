@@ -80,7 +80,10 @@ local function patch_lldebugger_for_lua55()
   end
   out:write(src:sub(1, i - 1) .. good .. src:sub(j + 1))
   out:close()
-  vim.notify("[dap] 已為 Lua 5.5 修補 lldebugger.lua（for 控制變數在 5.5 是唯讀的）", vim.log.levels.INFO)
+  vim.notify(
+    "[dap] 已為 Lua 5.5 修補 lldebugger.lua（for 控制變數在 5.5 是唯讀的）",
+    vim.log.levels.INFO
+  )
 end
 
 return {
