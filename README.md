@@ -2,6 +2,9 @@
 
 個人使用的 [LazyVim](https://github.com/LazyVim/LazyVim) 設定。
 
+學習入口：[自己修改 Neovim：實作教程](docs/tutorials/README.md)，包含 Lua 架構、常用 API、
+結果視窗、程序／FIFO I/O 與外部檔案更新，附可執行範例及測試。
+
 ## 安裝與套用
 
 Neovim 實際載入的預設設定目錄是 `~/.config/nvim`。若此 repository 位於其他路徑，
