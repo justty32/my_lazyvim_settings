@@ -84,7 +84,7 @@ Conjure 的所有 client 與啟動設定集中於 `lua/plugins/conjure.lua`，�
 2. `,ee` 求值目前 form，`,er` 求值最外層 form，`,eb` 求值整個 buffer。
 3. 預設用右上角 HUD 預覽結果，`,lh` 切換大／小預覽，不會重新求值。
    `,ls` 開啟下方結果 buffer，`Ctrl-w k` 回到程式碼；`,lt` 開成獨立分頁，`gT` 回前一分頁。
-   `,lq` 關閉目前分頁的結果視窗。
+   焦點在結果 buffer 時按 `q` 關閉該視窗／分頁，保留結果紀錄與 REPL；在程式碼內則用 `,lq` 關閉結果視窗。
    結果 buffer 可搜尋、捲動與複製，開著時不再跳 HUD；`K` 查詢游標處符號的文件。
 4. `,cS` 停止 REPL，`,cs` 重新啟動。換專案時另開 Neovim，避免沿用前一個專案的 REPL 狀態。
 

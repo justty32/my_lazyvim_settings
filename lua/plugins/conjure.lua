@@ -73,8 +73,29 @@ return {
       local function configure_buffer(buf)
         vim.b[buf]["conjure#client_on_load"] = stdio[vim.bo[buf].filetype] == true
       end
+      local group = vim.api.nvim_create_augroup("user_conjure", { clear = true })
+      vim.api.nvim_create_autocmd("BufWinEnter", {
+        group = group,
+        pattern = "conjure-log-*",
+        callback = function(event)
+          if vim.bo[event.buf].buftype ~= "nofile" then
+            return
+          end
+          vim.keymap.set("n", "q", function()
+            -- 保留 log 與 REPL；只關閉正在查看的視窗／分頁。
+            local windows = vim.tbl_filter(function(win)
+              return vim.api.nvim_win_get_config(win).relative == ""
+            end, vim.api.nvim_list_wins())
+            if #windows == 1 then
+              vim.cmd.enew()
+            else
+              vim.cmd.close()
+            end
+          end, { buffer = event.buf, desc = "Close REPL result window" })
+        end,
+      })
       vim.api.nvim_create_autocmd("FileType", {
-        group = vim.api.nvim_create_augroup("user_conjure", { clear = true }),
+        group = group,
         callback = function(event)
           configure_buffer(event.buf)
         end,
