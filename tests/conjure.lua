@@ -15,20 +15,8 @@ local function check()
   local config = require("conjure.config")
   assert(vim.bo.filetype == "janet", "Janet filetype detection failed")
   assert(vim.wo.wrap and vim.wo.linebreak and vim.wo.breakindent, "Visual wrapping must stay enabled")
-  assert(
-    vim.wait(8000, function()
-      local clients = vim.lsp.get_clients({ bufnr = 0, name = "janet_lsp" })
-      return clients[1] and clients[1].initialized
-    end, 50),
-    "Janet LSP did not attach"
-  )
-  local lsp = vim.lsp.get_clients({ bufnr = 0, name = "janet_lsp" })[1]
-  assert(lsp.config.root_dir == temp, "Janet LSP project root mismatch")
-  local hover = lsp:request_sync("textDocument/hover", {
-    textDocument = { uri = vim.uri_from_bufnr(0) },
-    position = { line = 0, character = 1 },
-  }, 5000, 0)
-  assert(hover and hover.result and hover.result.contents, "Janet LSP hover failed")
+  assert(not vim.lsp.is_enabled("janet_lsp"), "Unsafe Janet LSP must not autostart")
+  assert(#vim.lsp.get_clients({ bufnr = 0, name = "janet_lsp" }) == 0)
   assert(config["get-in"]({ "filetype", "janet" }) == "conjure.client.janet.stdio")
   assert(config["get-in"]({ "client_on_load" }) == true, "Janet must start automatically")
   assert(config["get-in"]({ "log", "hud", "enabled" }) == true, "HUD must stay available")
@@ -146,7 +134,9 @@ local function check()
   vim.cmd.enew({ bang = true })
   vim.cmd.setfiletype("markdown")
   assert(vim.b.autoformat == false, "Markdown autoformat regression")
-  print("PASS: Janet REPL/import/restart, LSP hover, highlighting, mappings, log wrapping, Lisp/Markdown settings")
+  print(
+    "PASS: Janet REPL/import/restart, LSP autostart disabled, highlighting, mappings, log wrapping, Lisp/Markdown settings"
+  )
 end
 local ok, err = xpcall(check, debug.traceback)
 vim.cmd.cd(vim.fn.fnameescape(original_cwd))

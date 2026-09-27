@@ -5,6 +5,9 @@ return {
     opts = {
       servers = {
         janet_lsp = {
+          -- 現機已確認 LSP 會執行 def 初始化式，可能觸發模型請求。
+          -- 修正並驗證分析無副作用後才能重新啟用；Conjure REPL 不受影響。
+          enabled = false,
           mason = false,
           root_markers = { "project.janet", ".git" },
         },

@@ -117,7 +117,8 @@ LSP 連線會觸發 `LspAttach`，多個 plugin 都可能處理這個事件。
 
 ## 怎麼驗證自己沒有改壞別的地方
 
-本次先在暫存專案驗證，再在實際開發目錄確認 LSP 根目錄與 REPL；沒有執行模型請求。
+本次先在暫存專案驗證，再在實際開發目錄確認 LSP 根目錄與 REPL。
+後續發現 LSP 本身會執行初始化式；早先「沒有執行模型請求」的判斷不能涵蓋這個自動副作用。
 可重跑的入口與前置條件見 [本機驗證](../README.md#本機驗證)：
 
 - [conjure.lua 測試](../tests/conjure.lua)：求值、import、LSP、折行、log 開啟／返回等。
@@ -134,3 +135,18 @@ LSP 連線會觸發 `LspAttach`，多個 plugin 都可能處理這個事件。
 4. 改一個容易還原的選項，在另一個 Neovim 行程驗證；通過後看 `git diff`，只提交這次的改動。
 
 不用一次讀懂所有 plugin。從「想改的行為 → 實際設定來源 → 一個小修改 → 驗證」開始就夠了。
+
+## 後續發現：Janet LSP 會執行初始化式
+
+2026-09-27 使用者再回報錯誤後，LSP 日誌出現了程式本身的 `tool: add` 輸出。
+用暫存專案做隔離探測：檔案只有一個 `def`，初始化式在暫存目錄寫入標記；
+不呼叫 Conjure 求值，僅讓 LSP 開檔分析，標記仍然產生。
+
+上游 [eval.janet](https://github.com/CFiggers/janet-lsp/blob/f38b4c8a17ac01ff29536b93d66198a0fec8a680/src/eval.janet)
+有 flycheck evaluator；所以「能連線、hover 正常」不能證明分析完全沒有副作用。
+此處不把上游當前程式碼等同於本機 jimage 的精確版本；本機行為以隔離探測為證。
+
+已停用本設定的 Janet LSP 自動啟動，也停止現有 Neovim 的該 client；沒有停止 Conjure REPL。
+待修復並驗證分析不會執行初始化式後，才能恢復 LSP。本輪未修改 VS Code 的獨立 LSP 設定。
+使用者提到的「不少錯誤」尚缺原始訊息；當時通知歷史沒有該批錯誤，REPL log 只找到
+`unknown symbol res`，不可把這筆錯誤與 LSP 副作用直接視為同一問題。
