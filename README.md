@@ -251,7 +251,11 @@ Conjure 的 log 另以 `conjure#log#wrap` 開啟折行，浮動預覽和完整 l
 
 ```sh
 nvim --headless -i NONE '+luafile tests/conjure.lua'
+nvim --headless -i NONE '+luafile tests/which-key.lua'
 ```
 
 測試在暫存專案驗證 REPL 求值、狀態保留、相對 import、重啟、Janet LSP hover、
 高亮、鍵位與折行設定，以及 Common Lisp 手動連線和 Markdown 格式化設定。
+
+`lua/plugins/which-key.lua` 在 LSP attach／detach 後重建快捷鍵前綴，避免 Conjure 隱藏 log
+使 which-key 停留在錯誤 buffer，造成程式碼內慢速輸入 `,ee` 時失效。
