@@ -32,6 +32,20 @@ return {
     ft = { "lisp", "fennel", "hy", "scheme", "janet" },
     keys = {
       {
+        "<localleader>le",
+        function()
+          local log = require("conjure.log")
+          local buf = vim.api.nvim_get_current_buf()
+          if not log["log-buf?"](vim.api.nvim_buf_get_name(buf)) then
+            local win = vim.api.nvim_get_current_win()
+            log.buf()
+            vim.w.conjure_log_origin = { buf = buf, win = win }
+          end
+        end,
+        ft = { "janet", "lisp", "fennel", "hy", "scheme" },
+        desc = "Open log in current window (q returns to source)",
+      },
+      {
         "<localleader>ll",
         function()
           local log = require("conjure.log")
@@ -74,6 +88,7 @@ return {
       vim.g["conjure#log#wrap"] = true
       -- 內建版本不會開啟 log，改由上面的鍵位開啟／聚焦再跳轉。
       vim.g["conjure#mapping#log_jump_to_latest"] = false
+      vim.g["conjure#mapping#log_buf"] = false
       -- 完整 log 已開啟時，即使正在往回捲動，也不另外跳出 HUD。
       vim.g["conjure#log#hud#open_when"] = "log-win-not-visible"
       vim.g["conjure#log#botright"] = true
@@ -106,6 +121,15 @@ return {
             return
           end
           vim.keymap.set("n", "q", function()
+            -- ,le 借用原視窗，q 應還原來源；split/tab 則關閉視窗。
+            local origin = vim.w.conjure_log_origin
+            if origin and origin.win == vim.api.nvim_get_current_win() then
+              vim.w.conjure_log_origin = nil
+              if vim.api.nvim_buf_is_valid(origin.buf) then
+                vim.api.nvim_win_set_buf(0, origin.buf)
+                return
+              end
+            end
             -- 保留 log 與 REPL；只關閉正在查看的視窗／分頁。
             local windows = vim.tbl_filter(function(win)
               return vim.api.nvim_win_get_config(win).relative == ""
