@@ -32,6 +32,28 @@ return {
     ft = { "lisp", "fennel", "hy", "scheme", "janet" },
     keys = {
       {
+        "<localleader>ll",
+        function()
+          local log = require("conjure.log")
+          local target
+          for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+            local buf = vim.api.nvim_win_get_buf(win)
+            if win ~= log.state.hud.id and log["log-buf?"](vim.api.nvim_buf_get_name(buf)) then
+              target = win
+              break
+            end
+          end
+          if target then
+            vim.api.nvim_set_current_win(target)
+          else
+            log.split()
+          end
+          log["jump-to-latest"]()
+        end,
+        ft = { "janet", "lisp", "fennel", "hy", "scheme" },
+        desc = "Open log and jump to latest result",
+      },
+      {
         "<localleader>lh",
         function()
           local expanded = vim.g["conjure#log#hud#width"] > 0.6
@@ -50,6 +72,8 @@ return {
       vim.g["conjure#client_on_load"] = false
       vim.g["conjure#log#hud#enabled"] = true
       vim.g["conjure#log#wrap"] = true
+      -- 內建版本不會開啟 log，改由上面的鍵位開啟／聚焦再跳轉。
+      vim.g["conjure#mapping#log_jump_to_latest"] = false
       -- 完整 log 已開啟時，即使正在往回捲動，也不另外跳出 HUD。
       vim.g["conjure#log#hud#open_when"] = "log-win-not-visible"
       vim.g["conjure#log#botright"] = true
