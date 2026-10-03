@@ -6,7 +6,7 @@ return {
         gdscript = {
           -- Godot editor must be running; it exposes LSP on port 6005
           cmd = vim.lsp.rpc.connect("127.0.0.1", 6005),
-          filetypes = { "gdscript", "gd" },
+          filetypes = { "gdscript" },
           root_dir = function(bufnr, on_dir)
             on_dir(vim.fs.root(bufnr, { "project.godot", ".git" }))
           end,

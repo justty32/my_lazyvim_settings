@@ -222,9 +222,4 @@ vim.api.nvim_create_user_command("CmeraOpen", M.open_output, {
   complete = complete_generators,
 })
 
-vim.api.nvim_create_user_command("CmeraBuild", M.preview, {
-  nargs = "?",
-  complete = complete_generators,
-})
-
 return M

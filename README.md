@@ -48,7 +48,6 @@ LazyGit（`<leader>gg`）、視窗大小調整（`<C-方向鍵>`）與存檔（`
 | `:CmeraOpen [generator]` | 寫出輸出並開啟產生的檔案 |
 
 支援的 generator 包含 `c`、`c++`、`cxx`、`cuda`、`glsl`、`ocl`、`opencl`。
-`:CmeraBuild [generator]` 保留為相容舊設定的別名，等同 `:CmeraPreview [generator]`。
 
 重複執行 `:CmeraPreview` 會更新同一個 preview 視窗（關掉後 buffer 仍保留重用），不會疊出多個視窗。
 
